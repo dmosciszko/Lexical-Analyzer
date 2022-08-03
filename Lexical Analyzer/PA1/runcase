@@ -1,0 +1,144 @@
+ex=~/prog1
+
+cd $LIB/public/ProgAssogn/PA1
+
+[ ! -e $ex ] && echo Cannot find the program, please build it! && exit 1
+
+declare -A p1cases p2cases cases caselist
+
+# part 1
+p1cases=(
+[badfile]="nosuchfile"
+[emptyfile]="emptyfile"
+[badarg1]="-icon -ids"
+[badarg2]="-iconsts=3 -iconsts -sconsts"
+[badarg3]="-v -v -v -woof"
+[idonly]="-v idonly"
+[idkw]="-v idkw"
+[kwonly]="-v kwonly"
+[lids]="-ids lids"
+)
+
+p2cases=(
+[file1]="<file1"
+[file2]="-v <file2"
+[file3]="<file3"
+[file4]="<file4"
+[file5]="file5"
+[file6]="-ids file6"
+[file7]="file7"
+[file8]="file8"
+[stringbad1]="stringbad1"
+[stringbad2]="stringbad2"
+[stringbad3]="stringbad3"
+[cominstring]="cominstring"
+[comments]="comments"
+[stringesc]="stringesc"
+[err1]="err1"
+[err2]="err2"
+[err3]="err3"
+[err4]="err4"
+[err5]="err5"
+[mix1]="mix1"
+[mix2]="mix2"
+[mix3]="mix3"
+[mix4]="mix4"
+[mix5]="mix5"
+[items1]="items1"
+[items2]="items2"
+[items3]="items3"
+[items4]="items4"
+)
+
+if [ "$1" == "part1" ];
+then
+	for key in "${!p1cases[@]}"; do
+    	cases[$key]="${p1cases[$key]}"
+	done
+
+	caselist="${!cases[*]}"
+elif [ "$1" == "part2" ];
+then
+	for key in "${!p1cases[@]}"; do
+    	cases[$key]="${p1cases[$key]}"
+	done
+	for key in "${!p2cases[@]}"; do
+    	cases[$key]="${p2cases[$key]}"
+	done
+
+	caselist="${!cases[*]}"
+elif [ $# -eq 0 ];
+then
+	echo part1 cases are:
+	for k in "${!p1cases[@]}"
+	do
+		echo $k ":::   " prog2 ${p1cases[$k]}
+	done
+	echo part2 cases are:
+	for k in "${!p2cases[@]}"
+	do
+		echo $k ":::   " prog2 ${p2cases[$k]}
+	done
+	exit 0
+else
+	for key in "${!p1cases[@]}"; do
+    	cases[$key]="${p1cases[$key]}"
+	done
+	for key in "${!p2cases[@]}"; do
+    	cases[$key]="${p2cases[$key]}"
+	done
+
+	for k in "${!cases[@]}"
+	do
+		if [ $k == $1 ];
+		then
+			caselist="$k"
+			break
+		fi
+	done
+
+	if [ ${#caselist[@]} -eq 0 ]; then
+		echo unrecognized case $1
+		exit 0
+	fi
+fi
+
+ofile=`mktemp`
+
+for case in ${caselist[@]};
+do
+	errorcase=0
+
+	echo RUNNING prog2 ${cases[$case]}
+
+	score=0
+
+	eval ./wrapcase.pl -- "bash -c '$ex ${cases[$case]} 2>&1'" | tee $ofile
+
+	## for setup ## cp $ofile ${case}.correct
+
+	rc=0
+	if [ $errorcase -eq 0 ] ;
+	then
+		echo "---------- checking result"
+    		diff $ofile $case.correct
+    		rc=$?
+	else
+    		segs=$(grep "Segment" $ofile | wc -l)
+    		#errs=$(egrep '[0-9]+: .*' $ofile | wc -l)
+    		#diff <(cat $ofile | head -n -1) <(cat ${1}.correct | head -n -1)
+    		#drc=$?
+    		drc=0
+    		if [ $errs -eq 0 -o $segs -ne 0 -o $drc -ne 0 ]; then rc=1; fi
+	fi
+
+
+	[ $rc -eq 0 ] && score=1
+
+	echo RESULT: $case "[ " $score " / 1 ]"
+
+	rm $ofile
+	echo "----------------------------"
+done
+
+exit $rc

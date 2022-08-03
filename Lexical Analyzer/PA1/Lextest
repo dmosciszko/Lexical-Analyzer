@@ -1,0 +1,39 @@
+ASSIGNMENT=prog1
+
+ex=~/$ASSIGNMENT
+
+cd $LIB/public/ProgAssign/PA1
+
+[ ! -e $ex ] && echo Cannot find the program, please build it! && exit 1
+ 
+ofile=`mktemp`
+
+cases=("" "cantopen" "emptyfile" "invalidarg" "nofile" "allintegers" "allreals" "invalidreal" "allids" "allidskws" "validstr" "invalidstr" "comments" "allflags" "invsymbol" "stringerr" "invid" "invstr" "fortprog1" "fortprog2")
+
+flags=("" "badfile" "emptyfile"  "badarg -icons" "" "ints -iconsts" "reals -rconsts" "realerr -rconsts" "ident -ids" "identkw -v" "strings -sconsts" "invstr -sconsts" "comments -ids" "allflags -ids -iconsts -rconsts -sconsts" "invsymbol -ids" "invstr2 -sconsts" "invid -ids" "invstr3 -sconsts" "fortprog1" "fortprog2 -ids") 
+
+filecheck=("" "badfile" "emptyfile"  "badarg" "nofile" "ints" "reals" "realerr" "ident" "identkw" "strings" "invstr" "comments" "allflags" "invsymbol" "invstr2" "invid" "invstr3" "fortprog1" "fortprog2")  
+
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19;
+do
+	score=0
+    echo RUNNING ${flags[i]}
+    eval $LIB/public/wrapcase.pl -- "bash -c \"$ex ${flags[$i]} 2>&1\"" | tee $ofile
+
+    ## for setup ## cp $ofile files$i.correct
+    ##if test $i != 4 
+    ##then
+        diff $ofile ${filecheck[$i]}.correct
+    ##else 
+     ##   diff $ofile ints.correct
+    ##fi
+
+    [ $? -eq 0 ] && score=1
+
+    echo RESULT: ${cases[i]}  "[ " $score " / 1 ]"
+    echo "-----------------------------------------------------"
+
+    rm $ofile
+done
+
+exit $score
